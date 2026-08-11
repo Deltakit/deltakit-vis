@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+        cache: 'pnpm'
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    - name: Test with coverage
+      run: pnpm vitest run --coverage
+    - name: Geometry baseline tests
+      run: pnpm run test:geometry
+    - name: Build
+      run: pnpm run build
+    - name: Check for deltakit-vis.umd.js
+      run: test -f dist/deltakit-vis.umd.js
