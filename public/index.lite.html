@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deltakit Visualiser — Example (Lite)</title>
+  <style>
+    .example-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: #fff;
+      border-bottom: 1px solid #ddd;
+      flex-wrap: wrap;
+    }
+
+    .example-bar span {
+      font-weight: 600;
+      margin-right: 4px;
+    }
+
+    .example-bar button {
+      padding: 4px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #f9f9f9;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .example-bar button:hover {
+      background: #e9e9e9;
+    }
+
+    .example-bar button.active {
+      background: #0066cc;
+      color: #fff;
+      border-color: #0055aa;
+    }
+
+    #example-label {
+      margin-left: auto;
+      font-size: 13px;
+      color: #666;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    #app {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="example-bar">
+    <span>Examples (Lite):</span>
+    <button data-example="primitives/declare">Declare</button>
+    <button data-example="primitives/prepare">Prepare</button>
+    <button data-example="primitives/meas_stab">Meas Stab</button>
+    <button data-example="primitives/measure">Measure</button>
+    <button data-example="primitives/multi_pauli_meas">Multi Pauli Meas</button>
+    <button data-example="extended/qmem">QMem</button>
+    <button data-example="extended/cnot">CNOT</button>
+    <span id="example-label"></span>
+  </div>
+  <div id="app"></div>
+
+  <script src="./deltakit-vis.lite.umd.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const current = params.get('example') || 'extended/cnot';
+
+    document.querySelectorAll('.example-bar button').forEach(btn => {
+      if (btn.dataset.example === current) btn.classList.add('active');
+      btn.addEventListener('click', function() {
+        location.href = '?example=' + encodeURIComponent(this.dataset.example);
+      });
+    });
+
+    const deltakit = new Deltakit('app');
+    document.getElementById('example-label').textContent = current + ' — loading…';
+
+    fetch('./examples/' + current + '.json')
+      .then(r => {
+        if (!r.ok) throw new Error('Failed to load ' + current);
+        return r.json();
+      })
+      .then(data => {
+        document.getElementById('example-label').textContent = current;
+        deltakit.render(data);
+      })
+      .catch(err => {
+        document.getElementById('example-label').textContent = 'Error: ' + err.message;
+      });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,80 @@
+{
+    "ops": [
+        {
+            "type": "surface",
+            "id": "patch_A_0_",
+            "op_name": "log_asm.patch_dec",
+            "location": [
+                0,
+                0
+            ],
+            "colour": "GREY",
+            "size": [
+                3,
+                3
+            ],
+            "startHeight": 0
+        },
+        {
+            "type": "surface",
+            "id": "patch_A_1_",
+            "op_name": "log_asm.prepare",
+            "location": [
+                0,
+                0
+            ],
+            "colour": "BLUE",
+            "size": [
+                3,
+                3
+            ],
+            "startHeight": 0
+        },
+        {
+            "type": "side",
+            "op_name": "log_asm.meas_stab",
+            "colourScheme": [
+                "BLUE",
+                "RED"
+            ],
+            "sides": {
+                "+X": true,
+                "-X": true,
+                "+Y": true,
+                "-Y": true
+            },
+            "fromSurfaceId": "patch_A_1_",
+            "toSurfaceId": "patch_A_2_"
+        },
+        {
+            "type": "surface",
+            "id": "patch_A_2_",
+            "op_name": "log_asm.meas_stab",
+            "colour": "NONE",
+            "location": [
+                0,
+                0
+            ],
+            "size": [
+                3,
+                3
+            ],
+            "startHeight": 3
+        },
+        {
+            "type": "surface",
+            "id": "measurementE",
+            "op_name": "log_asm.measure",
+            "location": [
+                0,
+                0
+            ],
+            "colour": "BLUE",
+            "size": [
+                3,
+                3
+            ],
+            "startHeight": 3
+        }
+    ]
+}
