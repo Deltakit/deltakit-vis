@@ -1,0 +1,60 @@
+name: Publish to npm
+
+# Reusable publish step shared by prerelease.yml and release.yml.
+#
+# It must stay a single file: npm trusted publishing allows exactly one
+# trusted publisher per package, pinned to one workflow filename. Register
+# THIS file (publish.yml, environment: npm) on npmjs.com — npm validates the
+# reusable workflow's ref, not the caller's.
+#
+# Auth works two ways, whichever is configured:
+#   - Trusted publishing (OIDC): no secrets needed; requires the trusted
+#     publisher config on npmjs.com and npm >= 11.5.1.
+#   - Token: add an npm granular access token as the NPM_TOKEN secret
+#     (callers pass `secrets: inherit`).
+
+on:
+  workflow_call:
+    inputs:
+      artifact-name:
+        description: Name of the uploaded tarball artefact to publish
+        required: true
+        type: string
+      dist-tag:
+        description: npm dist-tag to publish under (dev or latest)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish to npm (${{ inputs.dist-tag }})
+    runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/deltakit-visualise
+    permissions:
+      contents: read
+      id-token: write  # IMPORTANT: mandatory for trusted publishing and provenance
+    steps:
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+      # Trusted publishing (OIDC) needs npm >= 11.5.1.
+      - name: Update npm
+        run: npm install -g npm@latest
+      - name: Recover tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ./pkg/
+      - name: Publish
+        run: npm publish ./pkg/*.tgz --tag "$DIST_TAG" --provenance
+        env:
+          DIST_TAG: ${{ inputs.dist-tag }}
+          # Empty when using trusted publishing; npm then mints a token via OIDC.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
