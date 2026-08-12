@@ -4,6 +4,7 @@ import { bundleReportPlugin } from 'vite-plugin-bundle-report';
 import path from 'path';
 import type { Plugin } from 'vite';
 import fs from 'fs';
+import { licenseNoticesPlugin } from './vite-license-plugin';
 
 function multiIndexPlugin(): Plugin {
   return {
@@ -25,7 +26,7 @@ function multiIndexPlugin(): Plugin {
 }
 
 export default defineConfig(() => {
-  const plugins: PluginOption[] = [multiIndexPlugin()];
+  const plugins: PluginOption[] = [multiIndexPlugin(), licenseNoticesPlugin()];
   const openAnalyzerReport = (process.env.ANALYZE_OPEN_BROWSER ?? 'false') === 'true';
   if (process.env.ANALYZE) {
     plugins.push(visualizer({ open: openAnalyzerReport, brotliSize: true, filename: 'dist/stats-lite.html' }));
