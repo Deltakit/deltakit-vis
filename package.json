@@ -9,7 +9,8 @@
   "main": "dist/deltakit-visualise.umd.js",
   "files": [
     "dist/deltakit-visualise.umd.js",
-    "dist/deltakit-visualise.lite.umd.js"
+    "dist/deltakit-visualise.lite.umd.js",
+    "dist/THIRD-PARTY-NOTICES.txt"
   ],
   "scripts": {
     "dev": "concurrently \"pnpm dev:full\" \"pnpm dev:lite -- --port 5174\"",
@@ -42,6 +43,7 @@
     "@vitest/coverage-v8": "^3.2.4",
     "concurrently": "^9.0.0",
     "jsdom": "^26.1.0",
+    "rollup-plugin-license": "^3.7.1",
     "rollup-plugin-visualizer": "^5.10.0",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.2.0",

@@ -4,9 +4,10 @@ import cssInjectedByJs from 'vite-plugin-css-injected-by-js';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { bundleReportPlugin } from 'vite-plugin-bundle-report';
 import path from 'path';
+import { licenseNoticesPlugin } from './vite-license-plugin';
 
 export default defineConfig(() => {
-    const plugins: PluginOption[] = [react(), cssInjectedByJs()];
+    const plugins: PluginOption[] = [react(), cssInjectedByJs(), licenseNoticesPlugin()];
     const openAnalyzerReport = (process.env.ANALYZE_OPEN_BROWSER ?? 'false') === 'true';
     if (process.env.ANALYZE) {
         plugins.push(visualizer({ open: openAnalyzerReport, brotliSize: true, filename: 'dist/stats.html' }) as any);
