@@ -1,43 +1,266 @@
-name: Publish to npm
+name: Build, test, and publish to npm
 
-# Reusable publish step shared by prerelease.yml and release.yml.
+# This must stay the ONLY workflow that runs `npm publish`.
 #
-# It must stay a single file: npm trusted publishing allows exactly one
-# trusted publisher per package, pinned to one workflow filename. Register
-# THIS file (publish.yml, environment: npm) on npmjs.com — npm validates the
-# reusable workflow's ref, not the caller's.
+# npm trusted publishing validates the *calling* workflow's filename — not the
+# workflow containing the publish command, which is where PyPI looks. A package
+# may also have only one trusted publisher at a time, so prerelease and release
+# cannot live in separate workflows: that would need two registrations, and npm
+# allows one. Both channels are therefore branches of this single workflow.
 #
-# Auth works two ways, whichever is configured:
-#   - Trusted publishing (OIDC): no secrets needed; requires the trusted
-#     publisher config on npmjs.com and npm >= 11.5.1.
-#   - Token: add an npm granular access token as the NPM_TOKEN secret
-#     (callers pass `secrets: inherit`).
+# Register on npmjs.com (package Settings -> Trusted Publisher):
+#   organization/user: Deltakit
+#   repository:        deltakit-vis
+#   workflow:          publish.yml
+#   environment:       npm
+#   allowed actions:   npm publish
+#
+# No secrets are involved: npm mints a short-lived credential over OIDC, which
+# needs npm >= 11.5.1 and `id-token: write` on the publishing job.
 
 on:
-  workflow_call:
+  push:
+    branches: [main]      # -> prerelease, dev tag
+  release:
+    types: [published]    # -> release, latest tag
+  workflow_dispatch:
     inputs:
-      artifact-name:
-        description: Name of the uploaded tarball artefact to publish
-        required: true
-        type: string
-      dist-tag:
-        description: npm dist-tag to publish under (dev or latest)
-        required: true
-        type: string
+      channel:
+        description: Which channel to publish
+        type: choice
+        options: [prerelease, release]
+        default: prerelease
 
 permissions:
   contents: read
 
+env:
+  pkg_name: deltakit-visualise
+  artifact_name: npm-tarball
+
+concurrency:
+  # Never cancel a publish half-way; queue instead.
+  group: publish-${{ github.event_name }}
+  cancel-in-progress: false
+
 jobs:
+  config:
+    name: Resolve channel
+    runs-on: ubuntu-latest
+    outputs:
+      channel: ${{ steps.resolve.outputs.channel }}
+      dist_tag: ${{ steps.resolve.outputs.dist_tag }}
+    steps:
+      - name: Resolve channel and dist-tag
+        id: resolve
+        env:
+          # Empty for anything other than workflow_dispatch.
+          INPUT_CHANNEL: ${{ inputs.channel }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "release" ]; then
+            CHANNEL=release
+          else
+            CHANNEL="${INPUT_CHANNEL:-prerelease}"
+          fi
+
+          if [ "$CHANNEL" = "release" ]; then
+            DIST_TAG=latest
+          else
+            DIST_TAG=dev
+          fi
+
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
+          echo "dist_tag=$DIST_TAG" >> "$GITHUB_OUTPUT"
+          echo "Channel $CHANNEL, publishing under dist-tag $DIST_TAG"
+
+  # Runs on both channels so downstream jobs can depend on it unconditionally;
+  # a skipped job would force `always()` guards through the rest of the graph.
+  validate:
+    name: Validate version
+    needs: [config]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Validate project version against tag and registry
+        env:
+          CHANNEL: ${{ needs.config.outputs.channel }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if [ "$CHANNEL" != "release" ]; then
+            echo "Prerelease channel — version is derived at pack time, nothing to validate"
+            exit 0
+          fi
+
+          VERSION=$(node -p "require('./package.json').version")
+
+          # A release must name a stable version; the dev channel owns prereleases.
+          if [[ "$VERSION" == *-* ]]; then
+            echo "::error::package.json version $VERSION is a prerelease — releases must be stable (MAJOR.MINOR.PATCH)"
+            exit 1
+          fi
+
+          # On a release event use that release's tag; on manual dispatch fall
+          # back to the highest stable tag in the repo.
+          TAG="$RELEASE_TAG"
+          if [ -z "$TAG" ]; then
+            git fetch --tags --quiet
+            TAG=$(git tag -l | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)
+          fi
+          TAG_VERSION="${TAG#v}"
+
+          if [ "$VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::package.json version $VERSION does not match release tag $TAG — bump the version in package.json to $TAG_VERSION (or retag)"
+            exit 1
+          fi
+
+          # npm would reject the republish anyway, but with an opaque 403.
+          if npm view "${{ env.pkg_name }}@$VERSION" version >/dev/null 2>&1; then
+            echo "::error::${{ env.pkg_name }}@$VERSION is already published on npm — bump the version in package.json before releasing"
+            exit 1
+          fi
+
+          echo "Releasing $VERSION"
+
+  test:
+    name: Test
+    needs: [validate]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Test with coverage
+        run: pnpm vitest run --coverage
+      - name: Geometry baseline tests
+        run: pnpm run test:geometry
+
+  pack:
+    name: Build and pack
+    needs: [config, test]
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Bump the patch component so the prerelease sorts *below* the release it
+      # leads to: 0.6.0 -> 0.6.1-dev.<epoch>.g<sha>. Not committed back to main;
+      # package.json in git keeps its stable version. The `g` prefix on the sha
+      # matters: an all-digit short hash would otherwise be read as a semver
+      # numeric identifier, where a leading zero is illegal.
+      - name: Resolve version
+        id: version
+        env:
+          CHANNEL: ${{ needs.config.outputs.channel }}
+        run: |
+          if [ "$CHANNEL" = "release" ]; then
+            VERSION=$(node -p "require('./package.json').version")
+          else
+            NEXT=$(node -p "const v=require('./package.json').version.split('-')[0].split('.').map(Number); [v[0], v[1], v[2] + 1].join('.')")
+            COMMIT_HASH=$(git rev-parse --short HEAD)
+            SECS_SINCE_EPOCH=$(date +%s)
+            VERSION="${NEXT}-dev.${SECS_SINCE_EPOCH}.g${COMMIT_HASH}"
+            npm version "$VERSION" --no-git-tag-version --allow-same-version
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION"
+
+      # Must run *after* the version bump: vite bakes npm_package_version into
+      # the bundle and renders it in the UI.
+      - name: Build
+        run: pnpm run build
+
+      - name: Pack tarball
+        run: |
+          mkdir -p ./pkg
+          npm pack --pack-destination ./pkg
+
+      - name: Check tarball contents
+        run: |
+          TARBALL=$(ls ./pkg/*.tgz)
+          echo "Packed $TARBALL"
+          tar -tzf "$TARBALL"
+          for f in package/dist/deltakit-visualise.umd.js package/dist/deltakit-visualise.lite.umd.js; do
+            if ! tar -tzf "$TARBALL" | grep -qx "$f"; then
+              echo "::error::$f missing from tarball"
+              exit 1
+            fi
+          done
+
+      - name: Upload tarball artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.artifact_name }}
+          path: ./pkg/
+          retention-days: 1
+
+  smoke-test:
+    name: Install tarball and resolve entrypoints
+    needs: [pack]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Recover tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.artifact_name }}
+          path: ./pkg/
+      # Resolve rather than import: the bundle injects CSS at module evaluation
+      # and needs a DOM, so requiring it under bare Node would fail for reasons
+      # that have nothing to do with packaging.
+      - name: Install into a scratch project and resolve
+        shell: bash
+        run: |
+          mkdir scratch && cd scratch
+          npm init -y >/dev/null
+          npm install ../pkg/*.tgz
+          node -p "require.resolve('${{ env.pkg_name }}')"
+
   publish:
-    name: Publish to npm (${{ inputs.dist-tag }})
+    name: Publish to npm (${{ needs.config.outputs.dist_tag }})
+    needs: [config, pack, smoke-test]
     runs-on: ubuntu-latest
     environment:
       name: npm
       url: https://www.npmjs.com/package/deltakit-visualise
     permissions:
       contents: read
-      id-token: write  # IMPORTANT: mandatory for trusted publishing and provenance
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
     steps:
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -50,11 +273,18 @@ jobs:
       - name: Recover tarball
         uses: actions/download-artifact@v4
         with:
-          name: ${{ inputs.artifact-name }}
+          name: ${{ env.artifact_name }}
           path: ./pkg/
+
+      # No NODE_AUTH_TOKEN on purpose. npm exchanges the Actions OIDC token for
+      # a short-lived publish credential; if that exchange fails it silently
+      # falls back to whatever is in .npmrc, so an empty token would turn a
+      # "no trusted publisher matched" into a misleading ENEEDAUTH. Provenance
+      # is attached automatically under trusted publishing — no --provenance.
       - name: Publish
-        run: npm publish ./pkg/*.tgz --tag "$DIST_TAG" --provenance
         env:
-          DIST_TAG: ${{ inputs.dist-tag }}
-          # Empty when using trusted publishing; npm then mints a token via OIDC.
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          DIST_TAG: ${{ needs.config.outputs.dist_tag }}
+          VERSION: ${{ needs.pack.outputs.version }}
+        run: |
+          echo "Publishing ${{ env.pkg_name }}@$VERSION under dist-tag $DIST_TAG"
+          npm publish ./pkg/*.tgz --tag "$DIST_TAG"
