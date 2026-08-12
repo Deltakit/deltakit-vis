@@ -1,5 +1,5 @@
 {
-  "name": "@riverlane/deltakit-vis",
+  "name": "deltakit-visualise",
   "version": "0.6.0",
   "description": "Deltakit's visualisation renderer",
   "main": "dist/deltakit-vis.umd.js",
