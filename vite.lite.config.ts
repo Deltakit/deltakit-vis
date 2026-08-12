@@ -55,7 +55,7 @@ export default defineConfig(() => {
       lib: {
         entry: path.resolve(__dirname, 'src/index.lite.ts'),
         name: 'Deltakit',
-        fileName: (format) => `deltakit-vis.lite.${format}.js`,
+        fileName: (format) => `deltakit-visualise.lite.${format}.js`,
       },
       rollupOptions: {
         external: [],

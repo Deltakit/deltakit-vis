@@ -2,10 +2,14 @@
   "name": "deltakit-visualise",
   "version": "0.6.0",
   "description": "Deltakit's visualisation renderer",
-  "main": "dist/deltakit-vis.umd.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Deltakit/deltakit-vis.git"
+  },
+  "main": "dist/deltakit-visualise.umd.js",
   "files": [
-    "dist/deltakit-vis.umd.js",
-    "dist/deltakit-vis.lite.umd.js"
+    "dist/deltakit-visualise.umd.js",
+    "dist/deltakit-visualise.lite.umd.js"
   ],
   "scripts": {
     "dev": "concurrently \"pnpm dev:full\" \"pnpm dev:lite -- --port 5174\"",

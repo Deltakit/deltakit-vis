@@ -49,7 +49,7 @@ export default class Deltakit {
     if (rounds.length === 0) return;
     if (rounds.length > 1) {
       console.info(
-        `deltakit-vis: showing round ${rounds[0]?.round}; ${rounds.length - 1} further round(s) not rendered.`,
+        `deltakit-visualise: showing round ${rounds[0]?.round}; ${rounds.length - 1} further round(s) not rendered.`,
       );
     }
     if (!this.patchRenderer) {

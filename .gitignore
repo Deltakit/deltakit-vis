@@ -12,7 +12,7 @@ dist
 dist-ssr
 *.local
 coverage
-public/deltakit-vis.umd.js
+public/deltakit-visualise.umd.js
 
 # Editor directories and files
 .vscode/*

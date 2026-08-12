@@ -28,5 +28,5 @@ jobs:
       run: pnpm run test:geometry
     - name: Build
       run: pnpm run build
-    - name: Check for deltakit-vis.umd.js
-      run: test -f dist/deltakit-vis.umd.js
+    - name: Check for deltakit-visualise.umd.js
+      run: test -f dist/deltakit-visualise.umd.js

@@ -22,7 +22,7 @@ export interface DeltakitOptions {
 function warnExtraRounds(rounds: PatchRenderData[]): void {
   if (rounds.length > 1) {
     console.info(
-      `deltakit-vis: showing round ${rounds[0]?.round}; ${rounds.length - 1} further round(s) not rendered.`,
+      `deltakit-visualise: showing round ${rounds[0]?.round}; ${rounds.length - 1} further round(s) not rendered.`,
     );
   }
 }

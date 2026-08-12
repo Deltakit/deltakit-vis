@@ -32,7 +32,7 @@ export default defineConfig(() => {
             lib: {
                 entry: path.resolve(__dirname, 'src/index.ts'),
                 name: 'Deltakit',
-                fileName: (format) => `deltakit-vis.${format}.js`
+                fileName: (format) => `deltakit-visualise.${format}.js`
             },
             rollupOptions: {
                 external: [],
