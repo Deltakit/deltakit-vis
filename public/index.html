@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deltakit Visualiser — Example</title>
+  <style>
+    .example-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: #fff;
+      border-bottom: 1px solid #ddd;
+      flex-wrap: wrap;
+    }
+
+    .example-bar span {
+      font-weight: 600;
+      margin-right: 4px;
+    }
+
+    .example-bar button {
+      padding: 4px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #f9f9f9;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .example-bar button:hover {
+      background: #e9e9e9;
+    }
+
+    .example-bar button.active {
+      background: #0066cc;
+      color: #fff;
+      border-color: #0055aa;
+    }
+
+    #example-label {
+      margin-left: auto;
+      font-size: 13px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="example-bar">
+    <span>Examples:</span>
+    <button onclick="loadExample('primitives/declare', this)">Declare</button>
+    <button onclick="loadExample('primitives/prepare', this)">Prepare</button>
+    <button onclick="loadExample('primitives/meas_stab', this)">Meas Stab</button>
+    <button onclick="loadExample('primitives/measure', this)">Measure</button>
+    <button onclick="loadExample('primitives/multi_pauli_meas', this)">Multi Pauli Meas</button>
+    <button onclick="loadExample('extended/qmem', this)">QMem</button>
+    <button class="active" onclick="loadExample('extended/cnot', this)">CNOT</button>
+    <span id="example-label"></span>
+  </div>
+  <div id="app"></div>
+
+  <script src="./deltakit-visualise.umd.js"></script>
+  <script>
+    const deltakit = new Deltakit('app');
+
+    function loadExample(name, btn) {
+      document.querySelectorAll('.example-bar button').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+
+      document.getElementById('example-label').textContent = name + ' — loading…';
+      fetch('./examples/' + name + '.json')
+        .then(r => {
+          if (!r.ok) throw new Error('Failed to load ' + name);
+          return r.json();
+        })
+        .then(data => {
+          document.getElementById('example-label').textContent = name;
+          deltakit.render(data, { showSettingsPanel: true });
+        })
+        .catch(err => {
+          document.getElementById('example-label').textContent = 'Error: ' + err.message;
+        });
+    }
+
+    // Boot with the first example
+    loadExample('extended/cnot', document.querySelector('.example-bar button'));
+  </script>
+
+</body>
+</html>
