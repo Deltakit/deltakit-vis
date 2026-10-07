@@ -46,10 +46,12 @@ function SliceDetailView({
   slice,
   state,
   onBack,
+  showGrid,
 }: {
   slice: Slice;
   state: FetchState | null;
   onBack: () => void;
+  showGrid?: boolean;
 }) {
   return (
     <div className="flex h-full flex-col">
@@ -67,7 +69,7 @@ function SliceDetailView({
 
       <div className="aspect-square w-full overflow-hidden border-b border-border bg-muted/20">
         {state?.status === 'ready' ? (
-          <PatchDiagram data={state.data} />
+          <PatchDiagram data={state.data} showGrid={showGrid} />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
             {state?.status === 'loading' ? (
@@ -163,6 +165,8 @@ export interface SurfaceCodePanelProps {
   hoveredId?: string | null;
   onHoverChange?: (id: string | null) => void;
   onClose?: () => void;
+  /** Draw the unit grid behind the patch — follows the canvas "Show grid" setting. */
+  showGrid?: boolean;
 }
 
 export function SurfaceCodePanel({
@@ -172,6 +176,7 @@ export function SurfaceCodePanel({
   hoveredId,
   onHoverChange,
   onClose,
+  showGrid = false,
 }: SurfaceCodePanelProps) {
   const selectedSlice = selectedId ? slices.find((s) => s.id === selectedId) ?? null : null;
   const state = useSlicePatch(selectedSlice?.round ?? null);
@@ -199,6 +204,7 @@ export function SurfaceCodePanel({
             slice={selectedSlice}
             state={state}
             onBack={() => onSelectId?.(null)}
+            showGrid={showGrid}
           />
         ) : (
           <SliceListView

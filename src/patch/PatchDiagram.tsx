@@ -5,7 +5,7 @@ import type { PatchRenderData } from './types';
 import { PatchScene } from './components/PatchScene';
 import { PatchCameraFit } from './components/PatchCameraFit';
 
-export function PatchDiagram({ data }: { data: PatchRenderData }) {
+export function PatchDiagram({ data, showGrid = false }: { data: PatchRenderData; showGrid?: boolean }) {
   return (
     <Canvas
       gl={{
@@ -17,7 +17,7 @@ export function PatchDiagram({ data }: { data: PatchRenderData }) {
     >
       <OrthographicCamera makeDefault position={[0, 0, 10]} near={-100} far={100} />
       <color attach="background" args={['#f0f0f0']} />
-      <PatchScene data={data} />
+      <PatchScene data={data} showGrid={showGrid} />
       <PatchCameraFit data={data} />
     </Canvas>
   );
