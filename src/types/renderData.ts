@@ -35,7 +35,16 @@ export interface ResizeOp extends BaseOp {
     toSurfaceId: string | number;
 }
 
-export type Op = SurfaceOp | SideOp | ResizeOp;
+export interface StepOp extends BaseOp {
+    type: "step";
+    op_name?: string;
+    sides?: Sides;
+    fromSurfaceId: string | number;
+    toSurfaceId: string | number;
+    colourScheme: Colour[];
+}
+
+export type Op = SurfaceOp | SideOp | ResizeOp | StepOp;
 
 export interface RenderData {
     type?: "spacetime";
