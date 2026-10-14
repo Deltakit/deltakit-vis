@@ -68,9 +68,9 @@ export const SceneManager = ({ data, colorProfile, showCoordinate, showGrid, cam
       }
 
       for (const op of data.ops) {
-        if (op.type === 'side') {
+        if (op.type === 'side' || op.type === 'rotate') {
           if (op.fromSurfaceId === undefined || op.toSurfaceId === undefined) {
-            console.warn('deltakit: skipping side op with missing surface refs', op);
+            console.warn(`deltakit: skipping ${op.type} op with missing surface refs`, op);
             continue;
           }
           try {
