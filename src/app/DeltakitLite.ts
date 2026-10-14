@@ -2,6 +2,8 @@ import { SceneManager } from '@/three/SceneManager';
 import type { SurfaceInfo } from '@/types/three';
 import { createSurface } from '@/three/renderer/createSurface';
 import { createSides } from '@/three/renderer/createSides';
+import { createResizeFill } from '@/three/renderer/createResizeFill';
+import { createSurfaceLayerResolver } from '@/three/renderer/surfaceLayering';
 import type { RenderData } from '@/types/renderData';
 import type { PatchRenderData } from '@/patch/types';
 import type { VisualisationData } from '@/types/visualisationData';
@@ -65,9 +67,12 @@ export default class Deltakit {
     this.surfacesById.clear();
 
     if (data.ops) {
+      const resolveSurfaceLayerHeight = createSurfaceLayerResolver();
+
       for (const op of data.ops) {
         if (op.type === 'surface') {
-          const patchSurface = createSurface(op.size, op.location, op.startHeight, op.colour, op.id, this.surfacesById);
+          const startHeight = resolveSurfaceLayerHeight(op);
+          const patchSurface = createSurface(op.size, op.location, startHeight, op.colour, op.id, this.surfacesById);
           this.sceneManager.addToScene(patchSurface);
         }
       }
@@ -76,6 +81,9 @@ export default class Deltakit {
         if (op.type === 'side') {
           const patchSide = createSides(op.fromSurfaceId, op.toSurfaceId, op.colourScheme, this.surfacesById, op.sides, op.id);
           this.sceneManager.addToScene(patchSide);
+        } else if (op.type === 'resize') {
+          const fillMeshes = createResizeFill(op.fromSurfaceId, op.toSurfaceId, this.surfacesById, op.id);
+          fillMeshes.forEach((mesh) => this.sceneManager!.addToScene(mesh));
         } else if (op.type !== 'surface') {
           console.warn('Unknown operation type:', op);
         }
