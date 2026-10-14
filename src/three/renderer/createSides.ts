@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 
+import { createSideBorder, createSideMaterials, createSidesMesh } from '@/three/meshes/createSidesMesh';
+import { createTaperedGeometry } from '@/three/meshes/createTaperedGeometry';
 import { computeSidesParams } from '@/three/sides/computeSidesParams';
-import { createSidesMesh } from '@/three/meshes/createSidesMesh';
-import type { Sides } from '@/types/renderData';
+import { createBoxFaceOwner } from '@/three/meshes/boxFaceOwner';
 import type { SurfaceInfo, ColorProfile } from '@/types/three';
+import type { Sides } from '@/types/renderData';
 
-// Create a sides mesh based on the provided parameters and return it
 export function createSides(
   fromSurfaceId: string | number,
   toSurfaceId: string | number,
@@ -27,16 +28,39 @@ export function createSides(
   const toZ = to.coordinates[2];
   const { startHeight, height } = computeSidesParams(fromZ, toZ);
 
-  // Bounding-box union so sides correctly span non-aligned or differently-sized surfaces
-  const xMin = Math.min(from.coordinates[0], to.coordinates[0]);
-  const yMin = Math.min(from.coordinates[1], to.coordinates[1]);
-  const xMax = Math.max(from.coordinates[0] + from.dimensions[0], to.coordinates[0] + to.dimensions[0]);
-  const yMax = Math.max(from.coordinates[1] + from.dimensions[1], to.coordinates[1] + to.dimensions[1]);
+  const isTapered = from.dimensions[0] !== to.dimensions[0] || from.dimensions[1] !== to.dimensions[1];
 
-  const dimensions = [xMax - xMin, yMax - yMin, height];
-  const coordinates = [xMin, yMin, startHeight];
+  let mesh: THREE.Mesh;
 
-  const mesh = createSidesMesh({ dimensions, coordinates, colourScheme, sides, colorProfile });
+  if (isTapered) {
+    const geometry = createTaperedGeometry(from, to, height);
+
+    geometry.clearGroups();
+    geometry.addGroup(0, 6, 3);
+    geometry.addGroup(6, 6, 0);
+    geometry.addGroup(12, 6, 2);
+    geometry.addGroup(18, 6, 1);
+
+    mesh = new THREE.Mesh(geometry, createSideMaterials(colourScheme, sides, colorProfile));
+    mesh.position.z = startHeight;
+    mesh.userData.owner = createBoxFaceOwner(mesh);
+    mesh.add(createSideBorder(geometry, colorProfile));
+  } else {
+    // Bounding-box union so sides correctly span non-aligned surfaces
+    const xMin = Math.min(from.coordinates[0], to.coordinates[0]);
+    const yMin = Math.min(from.coordinates[1], to.coordinates[1]);
+    const xMax = Math.max(from.coordinates[0] + from.dimensions[0], to.coordinates[0] + to.dimensions[0]);
+    const yMax = Math.max(from.coordinates[1] + from.dimensions[1], to.coordinates[1] + to.dimensions[1]);
+
+    mesh = createSidesMesh({
+      dimensions: [xMax - xMin, yMax - yMin, height],
+      coordinates: [xMin, yMin, startHeight],
+      colourScheme,
+      sides,
+      colorProfile,
+    });
+  }
+
   mesh.userData.meshType = 'side';
   if (id !== undefined) {
     mesh.userData.id = id;
