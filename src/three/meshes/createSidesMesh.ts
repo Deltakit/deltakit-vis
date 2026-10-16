@@ -10,16 +10,21 @@ export function createSideMaterials(
   sides: Sides | undefined,
   colorProfile: ColorProfile
 ): THREE.MeshBasicMaterial[] {
-  const colourX = colourToHex(colourScheme[0], colorProfile);
-  const colourY = colourToHex(colourScheme[1], colorProfile);
+  const faceColours =
+    colourScheme.length >= 4
+      ? colourScheme.slice(0, 4)
+      : [colourScheme[0], colourScheme[0], colourScheme[1], colourScheme[1]];
+  const faces: (keyof Sides)[] = ['+X', '-X', '+Y', '-Y'];
   const isVisible = (side: keyof Sides) => (sides ? sides[side] : true);
 
-  return [
-    new THREE.MeshBasicMaterial({ color: colourX, visible: isVisible('+X'), side: THREE.DoubleSide }),
-    new THREE.MeshBasicMaterial({ color: colourX, visible: isVisible('-X'), side: THREE.DoubleSide }),
-    new THREE.MeshBasicMaterial({ color: colourY, visible: isVisible('+Y'), side: THREE.DoubleSide }),
-    new THREE.MeshBasicMaterial({ color: colourY, visible: isVisible('-Y'), side: THREE.DoubleSide }),
-  ];
+  return faces.map(
+    (face, i) =>
+      new THREE.MeshBasicMaterial({
+        color: colourToHex(faceColours[i], colorProfile),
+        visible: isVisible(face),
+        side: THREE.DoubleSide,
+      })
+  );
 }
 
 export function createSideBorder(
@@ -35,7 +40,7 @@ export function createSideBorder(
 export function createSidesMesh(params: {
   dimensions: number[]; // [width, depth, height]
   coordinates: number[]; // [x, y, z]
-  colourScheme: string[]; // [colourForX, colourForY]
+  colourScheme: string[]; // [colourForX, colourForY] or [+X, -X, +Y, -Y]
   sides?: Sides;
   colorProfile?: ColorProfile;
 }): THREE.Mesh {

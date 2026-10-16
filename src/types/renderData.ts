@@ -44,7 +44,16 @@ export interface StepOp extends BaseOp {
     colourScheme: Colour[];
 }
 
-export type Op = SurfaceOp | SideOp | ResizeOp | StepOp;
+export interface RotateOp extends BaseOp {
+    type: "rotate";
+    op_name?: string;
+    sides?: Sides;
+    fromSurfaceId: string | number;
+    toSurfaceId: string | number;
+    colourScheme: Colour[];
+}
+
+export type Op = SurfaceOp | SideOp | ResizeOp | StepOp | RotateOp;
 
 export interface RenderData {
     type?: "spacetime";
