@@ -1,17 +1,18 @@
-import { useMemo, useEffect, useRef } from 'react';
-import * as THREE from 'three';
-import { useThree } from '@react-three/fiber';
 import { OrbitControls, GizmoHelper, GizmoViewport } from '@react-three/drei';
+import { useMemo, useEffect, useRef } from 'react';
+import { useThree } from '@react-three/fiber';
+import * as THREE from 'three';
 
-import type { RenderData } from '@/types/renderData';
-import type { SurfaceInfo, ColorProfile } from '@/types/three';
-import type { DeltakitChangeViewEvent } from '@/react/events';
-import { createSurface } from '@/three/renderer/createSurface';
-import { createSides } from '@/three/renderer/createSides';
-import { createResizeFill } from '@/three/renderer/createResizeFill';
-import { createSurfaceLayerResolver } from '@/three/renderer/surfaceLayering';
 import { Direction, type DirectionType } from '@/primitives/Direction';
 import { fitCameraToScene } from '@/three/camera/fitCameraToScene';
+import { createResizeFill } from '@/three/renderer/createResizeFill';
+import { createSides } from '@/three/renderer/createSides';
+import { createStep } from '@/three/renderer/createStep';
+import { createSurface } from '@/three/renderer/createSurface';
+import { createSurfaceLayerResolver } from '@/three/renderer/surfaceLayering';
+import type { DeltakitChangeViewEvent } from '@/react/events';
+import type { RenderData } from '@/types/renderData';
+import type { SurfaceInfo, ColorProfile } from '@/types/three';
 
 const CoordinateMarker = () => (
   <group userData={{ noExport: true }}>
@@ -77,6 +78,17 @@ export const SceneManager = ({ data, colorProfile, showCoordinate, showGrid, cam
             resultMeshes.push(mesh);
           } catch (err) {
             console.warn('deltakit: failed to create side mesh', err);
+          }
+        } else if (op.type === 'step') {
+          if (op.fromSurfaceId === undefined || op.toSurfaceId === undefined) {
+            console.warn('deltakit: skipping step op with missing surface refs', op);
+            continue;
+          }
+          try {
+            const mesh = createStep(op.fromSurfaceId, op.toSurfaceId, op.colourScheme, surfacesById.current, op.sides, op.id, colorProfile);
+            resultMeshes.push(mesh);
+          } catch (err) {
+            console.warn('deltakit: failed to create step mesh', err);
           }
         } else if (op.type === 'resize') {
           if (op.fromSurfaceId === undefined || op.toSurfaceId === undefined) {
