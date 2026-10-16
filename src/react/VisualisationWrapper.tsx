@@ -145,7 +145,7 @@ export const VisualisationWrapper = ({
         </nav>
       </div>
 
-      {showSettingsPanel && mode === 'spacetime' && (
+      {showSettingsPanel && (
         <div className="absolute top-4 right-4 z-50">
           <CanvasSettings
             showCoordinate={localShowCoordinate}
@@ -211,7 +211,7 @@ export const VisualisationWrapper = ({
             <>
               <OrthographicCamera makeDefault position={[0, 0, 10]} near={-100} far={100} />
               <color attach="background" args={['#f0f0f0']} />
-              {patchData && <PatchScene data={patchData} />}
+              {patchData && <PatchScene data={patchData} showGrid={localShowGrid} />}
               {patchData && <PatchCameraFit data={patchData} />}
             </>
           )}
@@ -229,6 +229,7 @@ export const VisualisationWrapper = ({
                 hoveredId={hoveredSliceId}
                 onHoverChange={setHoveredSliceId}
                 onClose={exitSliceMode}
+                showGrid={localShowGrid}
               />
             </div>
           )}

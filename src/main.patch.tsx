@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import { PatchDiagram } from './patch/PatchDiagram';
+import '@/styles/globals.css';
+import '@/styles/index.css';
+import { VisualisationWrapper } from './react/VisualisationWrapper';
 import type { LogicalPatchData } from './types/visualisationData';
 
 const exampleDistance1: LogicalPatchData = {
@@ -116,8 +118,8 @@ function App() {
           </button>
         </div>
       </div>
-      <div style={{ flex: 1 }}>
-        <PatchDiagram data={data.ops[0]} />
+      <div style={{ flex: 1, minHeight: 0 }}>
+        <VisualisationWrapper patchRounds={data.ops} />
       </div>
     </div>
   );
