@@ -28,7 +28,14 @@ export interface SideOp extends BaseOp {
     colourScheme: Colour[];
 }
 
-export type Op = SurfaceOp | SideOp;
+export interface ResizeOp extends BaseOp {
+    type: "resize";
+    op_name?: string;
+    fromSurfaceId: string | number;
+    toSurfaceId: string | number;
+}
+
+export type Op = SurfaceOp | SideOp | ResizeOp;
 
 export interface RenderData {
     type?: "spacetime";

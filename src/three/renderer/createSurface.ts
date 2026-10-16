@@ -4,7 +4,6 @@ import { createSurfaceMesh } from '@/three/meshes/createSurfaceMesh';
 import { surfaceDefaultThickness } from '@/config/constants';
 import type { SurfaceInfo, ColorProfile } from '@/types/three';
 
-// Create a surface mesh based on the provided parameters and return it
 export function createSurface(
   size: number[],
   location: number[],
@@ -21,7 +20,7 @@ export function createSurface(
   mesh.userData.meshType = 'surface';
   if (id !== undefined && surfacesById) {
     mesh.userData.id = id;
-    surfacesById.set(id, { dimensions, coordinates });
+    surfacesById.set(id, { dimensions, coordinates, colour });
   }
   return mesh;
 }
