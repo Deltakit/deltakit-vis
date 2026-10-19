@@ -8,6 +8,8 @@ import type { SurfaceInfo, ColorProfile } from '@/types/three';
 import type { DeltakitChangeViewEvent } from '@/react/events';
 import { createSurface } from '@/three/renderer/createSurface';
 import { createSides } from '@/three/renderer/createSides';
+import { createResizeFill } from '@/three/renderer/createResizeFill';
+import { createSurfaceLayerResolver } from '@/three/renderer/surfaceLayering';
 import { Direction, type DirectionType } from '@/primitives/Direction';
 import { fitCameraToScene } from '@/three/camera/fitCameraToScene';
 
@@ -46,20 +48,27 @@ export const SceneManager = ({ data, colorProfile, showCoordinate, showGrid, cam
     const resultMeshes: THREE.Mesh[] = [];
 
     if (data.ops) {
+      const resolveSurfaceLayerHeight = createSurfaceLayerResolver();
+
       for (const op of data.ops) {
-        if (op.id === undefined || !op.type) {
-          console.warn('deltakit: skipping op with missing id or type', op);
+        if (!op.type) {
+          console.warn('deltakit: skipping op with missing type', op);
           continue;
         }
         if (op.type === 'surface') {
-          const mesh = createSurface(op.size, op.location, op.startHeight, op.colour, op.id, surfacesById.current, colorProfile);
+          if (op.id === undefined) {
+            console.warn('deltakit: skipping surface op with missing id', op);
+            continue;
+          }
+          const startHeight = resolveSurfaceLayerHeight(op);
+          const mesh = createSurface(op.size, op.location, startHeight, op.colour, op.id, surfacesById.current, colorProfile);
           resultMeshes.push(mesh);
         }
       }
 
       for (const op of data.ops) {
         if (op.type === 'side') {
-          if (!op.fromSurfaceId || !op.toSurfaceId) {
+          if (op.fromSurfaceId === undefined || op.toSurfaceId === undefined) {
             console.warn('deltakit: skipping side op with missing surface refs', op);
             continue;
           }
@@ -68,6 +77,17 @@ export const SceneManager = ({ data, colorProfile, showCoordinate, showGrid, cam
             resultMeshes.push(mesh);
           } catch (err) {
             console.warn('deltakit: failed to create side mesh', err);
+          }
+        } else if (op.type === 'resize') {
+          if (op.fromSurfaceId === undefined || op.toSurfaceId === undefined) {
+            console.warn('deltakit: skipping resize op with missing surface refs', op);
+            continue;
+          }
+          try {
+            const fillMeshes = createResizeFill(op.fromSurfaceId, op.toSurfaceId, surfacesById.current, op.id, colorProfile);
+            resultMeshes.push(...fillMeshes);
+          } catch (err) {
+            console.warn('deltakit: failed to create resize fill mesh', err);
           }
         }
       }
