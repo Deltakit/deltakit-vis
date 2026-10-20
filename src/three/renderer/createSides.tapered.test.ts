@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
+
 import { createSides } from '@/three/renderer/createSides';
 import type { SurfaceInfo } from '@/types/three';
 
@@ -9,10 +10,10 @@ describe('three/renderer/createSides - tapered geometry corner connection', () =
   /** The eight hull corners: the four `from` corners followed by the four `to` corners. */
   function hullCorners(mesh: THREE.Mesh) {
     const position = mesh.geometry.getAttribute('position');
-    expect(position.count).toBe(8);
+    expect(position).toBeDefined();
 
     const vertices: THREE.Vector3[] = [];
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < position.count; i++) {
       vertices.push(new THREE.Vector3(position.getX(i), position.getY(i), position.getZ(i)));
     }
     return { from: vertices.slice(0, 4), to: vertices.slice(4, 8) };
@@ -29,6 +30,7 @@ describe('three/renderer/createSides - tapered geometry corner connection', () =
     expect(mesh.geometry).not.toBeInstanceOf(THREE.BoxGeometry);
 
     const { from, to } = hullCorners(mesh);
+    expect((mesh.geometry as THREE.BufferGeometry).getAttribute('position').count).toBe(8);
 
     expect(from[0].x).toBeCloseTo(0, 5);
     expect(from[0].y).toBeCloseTo(0, 5);

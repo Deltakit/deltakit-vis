@@ -1,15 +1,16 @@
-import { SceneManager } from '@/three/SceneManager';
-import type { SurfaceInfo } from '@/types/three';
-import { createSurface } from '@/three/renderer/createSurface';
-import { createSides } from '@/three/renderer/createSides';
+import { createPatchRenderer, type PatchRenderer } from '@/patch/lite/renderPatchLite';
 import { createResizeFill } from '@/three/renderer/createResizeFill';
 import { createSurfaceLayerResolver } from '@/three/renderer/surfaceLayering';
-import type { RenderData } from '@/types/renderData';
-import type { PatchRenderData } from '@/patch/types';
 import type { VisualisationData } from '@/types/visualisationData';
 import { isLogicalPatchData } from '@/types/visualisationData';
-import { createPatchRenderer, type PatchRenderer } from '@/patch/lite/renderPatchLite';
+import { createSurface } from '@/three/renderer/createSurface';
+import { createSides } from '@/three/renderer/createSides';
+import { createStep } from '@/three/renderer/createStep';
+import type { RenderData } from '@/types/renderData';
+import type { PatchRenderData } from '@/patch/types';
+import { SceneManager } from '@/three/SceneManager';
 import { Direction } from '@/primitives/Direction';
+import type { SurfaceInfo } from '@/types/three';
 
 export default class Deltakit {
   private canvas: HTMLCanvasElement;
@@ -81,6 +82,9 @@ export default class Deltakit {
         if (op.type === 'side') {
           const patchSide = createSides(op.fromSurfaceId, op.toSurfaceId, op.colourScheme, this.surfacesById, op.sides, op.id);
           this.sceneManager.addToScene(patchSide);
+        } else if (op.type === 'step') {
+          const patchStep = createStep(op.fromSurfaceId, op.toSurfaceId, op.colourScheme, this.surfacesById, op.sides, op.id);
+          this.sceneManager.addToScene(patchStep);
         } else if (op.type === 'resize') {
           const fillMeshes = createResizeFill(op.fromSurfaceId, op.toSurfaceId, this.surfacesById, op.id);
           fillMeshes.forEach((mesh) => this.sceneManager!.addToScene(mesh));
