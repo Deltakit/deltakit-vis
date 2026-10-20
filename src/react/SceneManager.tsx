@@ -90,17 +90,6 @@ export const SceneManager = ({ data, colorProfile, showCoordinate, showGrid, cam
           } catch (err) {
             console.warn('deltakit-visualise: failed to create step mesh', err);
           }
-        } else if (op.type === 'step') {
-          if (op.fromSurfaceId === undefined || op.toSurfaceId === undefined) {
-            console.warn('deltakit: skipping step op with missing surface refs', op);
-            continue;
-          }
-          try {
-            const mesh = createStep(op.fromSurfaceId, op.toSurfaceId, op.colourScheme, surfacesById.current, op.sides, op.id, colorProfile);
-            resultMeshes.push(mesh);
-          } catch (err) {
-            console.warn('deltakit: failed to create step mesh', err);
-          }
         } else if (op.type === 'resize') {
           if (op.fromSurfaceId === undefined || op.toSurfaceId === undefined) {
             console.warn('deltakit-visualise: skipping resize op with missing surface refs', op);
