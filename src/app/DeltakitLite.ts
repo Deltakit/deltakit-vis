@@ -79,7 +79,7 @@ export default class Deltakit {
       }
 
       for (const op of data.ops) {
-        if (op.type === 'side') {
+        if (op.type === 'side' || op.type === 'rotate') {
           const patchSide = createSides(op.fromSurfaceId, op.toSurfaceId, op.colourScheme, this.surfacesById, op.sides, op.id);
           this.sceneManager.addToScene(patchSide);
         } else if (op.type === 'step') {
