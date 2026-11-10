@@ -77,9 +77,9 @@ export function createCorrelation(
     geometry,
     new THREE.MeshBasicMaterial({
       color: colourHex,
-      opacity: 0.7,
-      transparent: true,
-      depthWrite: false,
+      opacity: 1,
+      transparent: false,
+      depthWrite: true,
       side: THREE.DoubleSide,
     })
   );

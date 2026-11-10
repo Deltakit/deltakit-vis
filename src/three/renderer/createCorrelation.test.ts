@@ -53,7 +53,7 @@ describe('three/renderer/createCorrelation', () => {
     expect(mesh.geometry.boundingBox?.max.toArray()).toEqual([2, 6, 8]);
     expect(mesh.userData).toMatchObject({ meshType: 'correlation', blockId: 'block' });
     expect(mesh.material).toMatchObject({
-      transparent: true, opacity: 0.7, depthWrite: false, depthTest: true,
+      transparent: false, opacity: 1, depthWrite: true, depthTest: true,
       side: THREE.DoubleSide, wireframe: false,
     });
     const [blueMesh] = createCorrelation(correlation, surfaces, sides);

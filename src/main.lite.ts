@@ -22,6 +22,7 @@ const data: RenderData = {
         },
         {
             "type": "side",
+            "id": "side:lq_p:none_1",
             "op_name": "log_asm.meas_stab",
             "colourScheme": [
                 "BLUE",
@@ -53,6 +54,7 @@ const data: RenderData = {
         },
                 {
             "type": "side",
+            "id": "side:none_1:none_2",
             "op_name": "log_asm.meas_stab",
             "colourScheme": [
                 "BLUE",
