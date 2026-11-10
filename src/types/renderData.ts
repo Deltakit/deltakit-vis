@@ -17,15 +17,23 @@ export interface SurfaceOp extends BaseOp {
     colour: Colour;
 }
 
+export interface CorrelationOp {
+    type: "correlation";
+    blockId: string;
+    surfaces: string[];
+    colour: 'BLUE' | 'RED';
+}
+
 export type Sides = { '+X': boolean; '-X': boolean; '+Y': boolean; '-Y': boolean };
 
 export interface SideOp extends BaseOp {
     type: "side";
-    op_name?: string;
-    sides?: Sides;
-    fromSurfaceId: string | number;
-    toSurfaceId: string | number;
-    colourScheme: Colour[];
+    id: string;
+    op_name: string;
+    sides: Sides;
+    fromSurfaceId: string;
+    toSurfaceId: string;
+    colourScheme: [Colour, Colour];
 }
 
 export interface ResizeOp extends BaseOp {
@@ -53,10 +61,11 @@ export interface RotateOp extends BaseOp {
     colourScheme: Colour[];
 }
 
-export type Op = SurfaceOp | SideOp | ResizeOp | StepOp | RotateOp;
+export type Op = SurfaceOp | CorrelationOp | SideOp | ResizeOp | StepOp | RotateOp;
 
 export interface RenderData {
     type?: "spacetime";
+    orientation?: "vertical" | "horizontal";
     ops: Op[];
     removeSurfaceFromAxis?: DirectionType;
 }
