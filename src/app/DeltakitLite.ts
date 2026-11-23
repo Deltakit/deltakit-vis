@@ -6,7 +6,8 @@ import { isLogicalPatchData } from '@/types/visualisationData';
 import { createSurface } from '@/three/renderer/createSurface';
 import { createSides } from '@/three/renderer/createSides';
 import { createStep } from '@/three/renderer/createStep';
-import type { RenderData } from '@/types/renderData';
+import { createCorrelation } from '@/three/renderer/createCorrelation';
+import type { RenderData, SideOp } from '@/types/renderData';
 import type { PatchRenderData } from '@/patch/types';
 import { SceneManager } from '@/three/SceneManager';
 import { Direction } from '@/primitives/Direction';
@@ -69,8 +70,12 @@ export default class Deltakit {
 
     if (data.ops) {
       const resolveSurfaceLayerHeight = createSurfaceLayerResolver();
+      const sidesById = new Map<string, SideOp>();
 
       for (const op of data.ops) {
+        if (op.type === 'side') {
+          sidesById.set(op.id, op);
+        }
         if (op.type === 'surface') {
           const startHeight = resolveSurfaceLayerHeight(op);
           const patchSurface = createSurface(op.size, op.location, startHeight, op.colour, op.id, this.surfacesById);
@@ -79,7 +84,14 @@ export default class Deltakit {
       }
 
       for (const op of data.ops) {
-        if (op.type === 'side' || op.type === 'rotate') {
+        if (op.type === 'correlation') {
+          try {
+            createCorrelation(op, this.surfacesById, sidesById)
+              .forEach((mesh) => this.sceneManager!.addToScene(mesh));
+          } catch (err) {
+            console.warn('deltakit-visualise: failed to create correlation mesh', err);
+          }
+        } else if (op.type === 'side' || op.type === 'rotate') {
           const patchSide = createSides(op.fromSurfaceId, op.toSurfaceId, op.colourScheme, this.surfacesById, op.sides, op.id);
           this.sceneManager.addToScene(patchSide);
         } else if (op.type === 'step') {

@@ -10,8 +10,9 @@ import { createSides } from '@/three/renderer/createSides';
 import { createStep } from '@/three/renderer/createStep';
 import { createSurface } from '@/three/renderer/createSurface';
 import { createSurfaceLayerResolver } from '@/three/renderer/surfaceLayering';
+import { createCorrelation } from '@/three/renderer/createCorrelation';
 import type { DeltakitChangeViewEvent } from '@/react/events';
-import type { RenderData } from '@/types/renderData';
+import type { RenderData, SideOp } from '@/types/renderData';
 import type { SurfaceInfo, ColorProfile } from '@/types/three';
 
 const CoordinateMarker = () => (
@@ -50,11 +51,15 @@ export const SceneManager = ({ data, colorProfile, showCoordinate, showGrid, cam
 
     if (data.ops) {
       const resolveSurfaceLayerHeight = createSurfaceLayerResolver();
+      const sidesById = new Map<string, SideOp>();
 
       for (const op of data.ops) {
         if (!op.type) {
           console.warn('deltakit-visualise: skipping op with missing type', op);
           continue;
+        }
+        if (op.type === 'side') {
+          sidesById.set(op.id, op);
         }
         if (op.type === 'surface') {
           if (op.id === undefined) {
@@ -68,7 +73,15 @@ export const SceneManager = ({ data, colorProfile, showCoordinate, showGrid, cam
       }
 
       for (const op of data.ops) {
-        if (op.type === 'side' || op.type === 'rotate') {
+        if (op.type === 'correlation') {
+          try {
+            resultMeshes.push(
+              ...createCorrelation(op, surfacesById.current, sidesById, colorProfile)
+            );
+          } catch (err) {
+            console.warn('deltakit-visualise: failed to create correlation mesh', err);
+          }
+        } else if (op.type === 'side' || op.type === 'rotate') {
           if (op.fromSurfaceId === undefined || op.toSurfaceId === undefined) {
             console.warn('deltakit-visualise: skipping side op with missing surface refs', op);
             continue;
