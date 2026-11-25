@@ -10,8 +10,8 @@ const data: RenderData = {
             "id": "lq_p",
             "op_name": "log_asm.prepare",
             "location": [
-                1,
-                1
+                0,
+                0
             ],
             "colour": "BLUE",
             "size": [
@@ -42,8 +42,8 @@ const data: RenderData = {
             "op_name": "log_asm.meas_stab",
             "colour": "NONE",
             "location": [
-                1,
-                1
+                0,
+                0
             ],
             "size": [
                 3,
@@ -51,7 +51,37 @@ const data: RenderData = {
             ],
             "startHeight": 3
         },
-                {
+        {
+            "type": "hadamard",
+            "id": "lq_h",
+            "op_name": "log_asm.transversal",
+            "startHeight": 3.0,
+            "height": 0,
+            "location": [
+                0.0,
+                0.0
+            ],
+            "size": [
+                3,
+                3
+            ]
+        },
+        {
+            "type": "surface",
+            "id": "none_1_1",
+            "op_name": "log_asm.meas_stab",
+            "colour": "NONE",
+            "location": [
+                0,
+                0
+            ],
+            "size": [
+                3,
+                3
+            ],
+            "startHeight": 4
+        },
+        {
             "type": "side",
             "op_name": "log_asm.meas_stab",
             "colourScheme": [
@@ -64,7 +94,7 @@ const data: RenderData = {
                 "+Y": true,
                 "-Y": true
             },
-            "fromSurfaceId": "none_1",
+            "fromSurfaceId": "none_1_1",
             "toSurfaceId": "none_2"
         },
         {
@@ -73,14 +103,14 @@ const data: RenderData = {
             "op_name": "log_asm.meas_stab",
             "colour": "NONE",
             "location": [
-                1,
-                1
+                0,
+                0
             ],
             "size": [
                 3,
                 3
             ],
-            "startHeight": 6
+            "startHeight": 7
         },
     ]
 };

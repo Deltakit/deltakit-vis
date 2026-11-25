@@ -11,9 +11,11 @@ export function createSurface(
   colour?: string,
   id?: string | number,
   surfacesById?: Map<string | number, SurfaceInfo>,
-  colorProfile: ColorProfile = 'standard'
+  colorProfile: ColorProfile = 'standard',
+  customThickness?: number
 ): THREE.Mesh {
-  const dimensions = [size[0], size[1], surfaceDefaultThickness];
+  const thickness = customThickness !== undefined ? customThickness : surfaceDefaultThickness;
+  const dimensions = [size[0], size[1], thickness];
   const coordinates = [location[0], location[1], startHeight];
 
   const mesh = createSurfaceMesh({ dimensions, coordinates, colour, colorProfile });
