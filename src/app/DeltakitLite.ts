@@ -75,6 +75,11 @@ export default class Deltakit {
           const startHeight = resolveSurfaceLayerHeight(op);
           const patchSurface = createSurface(op.size, op.location, startHeight, op.colour, op.id, this.surfacesById);
           this.sceneManager.addToScene(patchSurface);
+        } else if (op.type === 'hadamard') {
+          if (op.height === 1) {
+            const patchSurface = createSurface(op.size, op.location, op.startHeight, 'YELLOW', op.id, this.surfacesById, 'standard', 1);
+            this.sceneManager.addToScene(patchSurface);
+          }
         }
       }
 

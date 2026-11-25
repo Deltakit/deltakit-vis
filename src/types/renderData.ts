@@ -53,7 +53,16 @@ export interface RotateOp extends BaseOp {
     colourScheme: Colour[];
 }
 
-export type Op = SurfaceOp | SideOp | ResizeOp | StepOp | RotateOp;
+export interface HadamardOp extends BaseOp {
+    type: "hadamard";
+    op_name?: string;
+    size: Vec2;
+    location: Vec2;
+    startHeight: number;
+    height: number;
+}
+
+export type Op = SurfaceOp | SideOp | ResizeOp | StepOp | RotateOp | HadamardOp;
 
 export interface RenderData {
     type?: "spacetime";

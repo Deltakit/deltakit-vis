@@ -64,6 +64,11 @@ export const SceneManager = ({ data, colorProfile, showCoordinate, showGrid, cam
           const startHeight = resolveSurfaceLayerHeight(op);
           const mesh = createSurface(op.size, op.location, startHeight, op.colour, op.id, surfacesById.current, colorProfile);
           resultMeshes.push(mesh);
+        } else if (op.type === 'hadamard') {
+          if (op.height === 1) {
+            const mesh = createSurface(op.size, op.location, op.startHeight, 'YELLOW', op.id, surfacesById.current, colorProfile, 1);
+            resultMeshes.push(mesh);
+          }
         }
       }
 

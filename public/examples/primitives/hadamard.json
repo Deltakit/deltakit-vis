@@ -1,0 +1,22 @@
+{
+    "ops": [
+        {
+            "type": "hadamard",
+            "id": "lq_h_active",
+            "op_name": "log_asm.transversal",
+            "startHeight": 0.0,
+            "height": 1,
+            "location": [0.0, 0.0],
+            "size": [3, 3]
+        },
+        {
+            "type": "hadamard",
+            "id": "lq_h_inactive",
+            "op_name": "log_asm.transversal",
+            "startHeight": 2.0,
+            "height": 0,
+            "location": [5.0, 5.0],
+            "size": [3, 3]
+        }
+    ]
+}
