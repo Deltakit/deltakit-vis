@@ -75,7 +75,6 @@ describe('three/rendering geometry baselines (public/examples/**/*.json)', () =>
           surfacesById
         );
       } else {
-        if (op.height !== 1) continue;
         mesh = createSurface(
           op.size,
           op.location,
@@ -84,7 +83,7 @@ describe('three/rendering geometry baselines (public/examples/**/*.json)', () =>
           op.id,
           surfacesById,
           'standard',
-          1
+          op.height === 1 ? 1 : undefined
         );
       }
       meshesByKey.set(`${op.type}:${op.id}`, mesh);

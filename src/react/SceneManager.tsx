@@ -68,6 +68,9 @@ export const SceneManager = ({ data, colorProfile, showCoordinate, showGrid, cam
           if (op.height === 1) {
             const mesh = createSurface(op.size, op.location, op.startHeight, 'YELLOW', op.id, surfacesById.current, colorProfile, 1);
             resultMeshes.push(mesh);
+          } else if (op.height === 0) {
+            const mesh = createSurface(op.size, op.location, op.startHeight, 'YELLOW', op.id, surfacesById.current, colorProfile);
+            resultMeshes.push(mesh);
           }
         }
       }
